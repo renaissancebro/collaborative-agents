@@ -1,0 +1,28 @@
+# Logs
+postbox/*.log
+postbox/archive/
+
+# Temp files
+/tmp/gemini_*
+/tmp/claude_*
+
+# Lock files
+*.lock
+
+# Backup files
+*.backup
+
+# Environment files
+.env
+
+# System files
+.DS_Store
+*.pyc
+__pycache__/
+
+# IDE files
+.vscode/
+.idea/
+
+# Node modules (if any)
+node_modules/
