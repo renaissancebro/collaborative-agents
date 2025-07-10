@@ -10,6 +10,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+PURPLE='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Paths
@@ -53,7 +54,7 @@ show_todo_status() {
     echo "─────────────────"
     
     if [ -f "$POSTBOX_DIR/todo.md" ]; then
-        local pending_count=$(grep -c "^- \[ \]" "$POSTBOX_DIR/todo.md" 2>/dev/null || echo "0")
+        local pending_count=$(grep "^- \[ \]" "$POSTBOX_DIR/todo.md" 2>/dev/null | wc -l | tr -d '\n ' || echo "0")
         echo -e "Pending TODOs: ${YELLOW}$pending_count${NC}"
         
         if [ "$pending_count" -gt 0 ]; then
@@ -75,7 +76,7 @@ show_completed_status() {
     echo "─────────────────────"
     
     if [ -f "$POSTBOX_DIR/completed-todos.md" ]; then
-        local completed_count=$(grep -c "^## Completed:" "$POSTBOX_DIR/completed-todos.md" 2>/dev/null || echo "0")
+        local completed_count=$(grep "^## Completed:" "$POSTBOX_DIR/completed-todos.md" 2>/dev/null | wc -l | tr -d '\n ' || echo "0")
         echo -e "Completed fixes: ${GREEN}$completed_count${NC}"
         
         if [ "$completed_count" -gt 0 ]; then

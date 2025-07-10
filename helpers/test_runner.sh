@@ -79,15 +79,15 @@ test_python_file() {
         "duration": 0
     }'
     
-    local start_time=$(date +%s%N)
+    local start_time=$(date +%s)
     if python3 -m py_compile "$file_path" 2>/dev/null; then
-        local end_time=$(date +%s%N)
-        local duration=$(( (end_time - start_time) / 1000000 ))
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
         syntax_test=$(echo "$syntax_test" | jq --arg status "passed" --arg output "Syntax check passed" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
         success "  ✅ Syntax check passed"
     else
-        local end_time=$(date +%s%N)
-        local duration=$(( (end_time - start_time) / 1000000 ))
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
         local error_output=$(python3 -m py_compile "$file_path" 2>&1 || echo "Syntax error")
         syntax_test=$(echo "$syntax_test" | jq --arg status "failed" --arg output "$error_output" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
         error "  ❌ Syntax check failed"
@@ -102,7 +102,7 @@ test_python_file() {
         "duration": 0
     }'
     
-    start_time=$(date +%s%N)
+    start_time=$(date +%s)
     local module_name=$(basename "$file_path" .py)
     local temp_test_file="/tmp/test_import_$$_$(date +%s).py"
     
@@ -119,13 +119,13 @@ except Exception as e:
 EOF
     
     if python3 "$temp_test_file" 2>/dev/null; then
-        local end_time=$(date +%s%N)
-        local duration=$(( (end_time - start_time) / 1000000 ))
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
         import_test=$(echo "$import_test" | jq --arg status "passed" --arg output "Import check passed" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
         success "  ✅ Import check passed"
     else
-        local end_time=$(date +%s%N)
-        local duration=$(( (end_time - start_time) / 1000000 ))
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
         local error_output=$(python3 "$temp_test_file" 2>&1 || echo "Import error")
         import_test=$(echo "$import_test" | jq --arg status "failed" --arg output "$error_output" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
         warn "  ⚠️  Import check failed"
@@ -143,11 +143,11 @@ EOF
     }'
     
     if command -v pylint &> /dev/null; then
-        start_time=$(date +%s%N)
+        start_time=$(date +%s)
         local lint_output=$(pylint "$file_path" --output-format=text --score=yes 2>&1 || true)
         local lint_score=$(echo "$lint_output" | grep "Your code has been rated" | sed -n 's/.*rated at \([0-9.]*\).*/\1/p')
-        local end_time=$(date +%s%N)
-        local duration=$(( (end_time - start_time) / 1000000 ))
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
         
         if [ -n "$lint_score" ] && (( $(echo "$lint_score >= 7.0" | bc -l) )); then
             lint_test=$(echo "$lint_test" | jq --arg status "passed" --arg output "Lint score: $lint_score/10" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
@@ -197,15 +197,15 @@ test_javascript_file() {
         "duration": 0
     }'
     
-    local start_time=$(date +%s%N)
+    local start_time=$(date +%s)
     if node -c "$file_path" 2>/dev/null; then
-        local end_time=$(date +%s%N)
-        local duration=$(( (end_time - start_time) / 1000000 ))
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
         syntax_test=$(echo "$syntax_test" | jq --arg status "passed" --arg output "Syntax check passed" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
         success "  ✅ Syntax check passed"
     else
-        local end_time=$(date +%s%N)
-        local duration=$(( (end_time - start_time) / 1000000 ))
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
         local error_output=$(node -c "$file_path" 2>&1 || echo "Syntax error")
         syntax_test=$(echo "$syntax_test" | jq --arg status "failed" --arg output "$error_output" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
         error "  ❌ Syntax check failed"
@@ -221,10 +221,10 @@ test_javascript_file() {
     }'
     
     if command -v eslint &> /dev/null; then
-        start_time=$(date +%s%N)
+        start_time=$(date +%s)
         local lint_output=$(eslint "$file_path" 2>&1 || true)
-        local end_time=$(date +%s%N)
-        local duration=$(( (end_time - start_time) / 1000000 ))
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
         
         if [ -z "$lint_output" ]; then
             lint_test=$(echo "$lint_test" | jq --arg status "passed" --arg output "No linting errors" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
@@ -246,7 +246,7 @@ test_javascript_file() {
     
     # Check if file has main execution pattern
     if grep -q "if.*__filename.*require.main" "$file_path" || grep -q "module.exports" "$file_path"; then
-        start_time=$(date +%s%N)
+        start_time=$(date +%s)
         local temp_test_file="/tmp/test_exec_$$_$(date +%s).js"
         
         cat > "$temp_test_file" << EOF
@@ -260,13 +260,13 @@ try {
 EOF
         
         if timeout 5 node "$temp_test_file" 2>/dev/null; then
-            local end_time=$(date +%s%N)
-            local duration=$(( (end_time - start_time) / 1000000 ))
+            local end_time=$(date +%s)
+            local duration=$((end_time - start_time))
             execution_test=$(echo "$execution_test" | jq --arg status "passed" --arg output "Module loaded successfully" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
             success "  ✅ Execution test passed"
         else
-            local end_time=$(date +%s%N)
-            local duration=$(( (end_time - start_time) / 1000000 ))
+            local end_time=$(date +%s)
+            local duration=$((end_time - start_time))
             local error_output=$(timeout 5 node "$temp_test_file" 2>&1 || echo "Execution failed")
             execution_test=$(echo "$execution_test" | jq --arg status "failed" --arg output "$error_output" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
             warn "  ⚠️  Execution test failed"
@@ -315,15 +315,15 @@ test_typescript_file() {
     }'
     
     if command -v tsc &> /dev/null; then
-        local start_time=$(date +%s%N)
+        local start_time=$(date +%s)
         if tsc --noEmit "$file_path" 2>/dev/null; then
-            local end_time=$(date +%s%N)
-            local duration=$(( (end_time - start_time) / 1000000 ))
+            local end_time=$(date +%s)
+            local duration=$((end_time - start_time))
             compile_test=$(echo "$compile_test" | jq --arg status "passed" --arg output "TypeScript compilation passed" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
             success "  ✅ TypeScript compilation passed"
         else
-            local end_time=$(date +%s%N)
-            local duration=$(( (end_time - start_time) / 1000000 ))
+            local end_time=$(date +%s)
+            local duration=$((end_time - start_time))
             local error_output=$(tsc --noEmit "$file_path" 2>&1 || echo "Compilation error")
             compile_test=$(echo "$compile_test" | jq --arg status "failed" --arg output "$error_output" --argjson duration "$duration" '.status = $status | .output = $output | .duration = $duration')
             error "  ❌ TypeScript compilation failed"
