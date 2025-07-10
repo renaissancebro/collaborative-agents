@@ -167,6 +167,34 @@ show_test_status() {
     echo ""
 }
 
+show_memory_status() {
+    echo -e "${PURPLE}🧠 Session Memory${NC}"
+    echo "─────────────────"
+    
+    if [ -f "$POSTBOX_DIR/memory/memory_summary.json" ]; then
+        local total_attempts=$(jq -r '.total_attempts // 0' "$POSTBOX_DIR/memory/memory_summary.json" 2>/dev/null)
+        local success_rate=$(jq -r '.success_rate // 0' "$POSTBOX_DIR/memory/memory_summary.json" 2>/dev/null)
+        local files_modified=$(jq -r '.files_modified // 0' "$POSTBOX_DIR/memory/memory_summary.json" 2>/dev/null)
+        
+        echo -e "Fix attempts: ${CYAN}$total_attempts${NC}"
+        echo -e "Success rate: ${GREEN}$success_rate%${NC}"
+        echo -e "Files touched: ${YELLOW}$files_modified${NC}"
+        
+        # Show recent activity from session log
+        if [ -f "$POSTBOX_DIR/memory/session_log.md" ]; then
+            local recent_fix=$(grep "### Fix #" "$POSTBOX_DIR/memory/session_log.md" | tail -1 | sed 's/### Fix #[0-9_]* - //')
+            if [ -n "$recent_fix" ]; then
+                echo -e "Latest: ${CYAN}$recent_fix${NC}"
+            fi
+        fi
+    else
+        echo -e "${YELLOW}No memory data available${NC}"
+        echo -e "Memory starts when fixes begin"
+    fi
+    
+    echo ""
+}
+
 show_controls() {
     echo -e "${BLUE}🎛️  Controls${NC}"
     echo "─────────────"
@@ -176,6 +204,8 @@ show_controls() {
     echo -e "${YELLOW}t${NC} - View TODO file"
     echo -e "${YELLOW}f${NC} - View completed fixes"
     echo -e "${YELLOW}x${NC} - View failed fixes"
+    echo -e "${YELLOW}m${NC} - View session memory"
+    echo -e "${YELLOW}i${NC} - View session insights"
     echo -e "${YELLOW}T${NC} - Run tests"
     echo -e "${YELLOW}R${NC} - View test report"
     echo -e "${YELLOW}s${NC} - Start agents"
@@ -253,6 +283,7 @@ interactive_mode() {
         show_todo_status
         show_completed_status
         show_test_status
+        show_memory_status
         show_recent_activity
         show_system_info
         show_controls
@@ -279,6 +310,20 @@ interactive_mode() {
                 ;;
             x|X)
                 show_file "$POSTBOX_DIR/failed_fixes.md" "Failed Fixes"
+                ;;
+            m|M)
+                show_file "$POSTBOX_DIR/memory/session_log.md" "Session Memory Log"
+                ;;
+            i|I)
+                if [ -f "$POSTBOX_DIR/memory/insights.md" ]; then
+                    show_file "$POSTBOX_DIR/memory/insights.md" "Session Insights"
+                else
+                    echo "Generating insights..."
+                    cd "$POSTBOX_DIR/.." && ./helpers/memory_manager.sh insights
+                    echo ""
+                    echo -e "${YELLOW}Press any key to continue...${NC}"
+                    read -n 1 -s
+                fi
                 ;;
             T)
                 echo "Running tests..."
@@ -327,6 +372,8 @@ auto_refresh_mode() {
         check_agent_status
         show_todo_status
         show_completed_status
+        show_test_status
+        show_memory_status
         show_recent_activity
         show_system_info
         

@@ -136,6 +136,11 @@ apply_fix() {
     
     info "🔧 Applying fix to $filename at line $line_number"
     
+    # Initialize memory system if not already done
+    ../helpers/memory_manager.sh init > /dev/null 2>&1 || true
+    
+    local fix_start_time=$(date +%s)
+    
     # Create a detailed prompt for Claude
     local temp_prompt="/tmp/claude_fix_prompt.txt"
     cat > "$temp_prompt" << EOF
@@ -217,6 +222,10 @@ EOF
                 # Mark TODO as completed
                 mark_todo_completed "$todo_item" "$fix_applied" "$explanation"
                 
+                # Log successful fix to memory
+                local fix_duration=$(($(date +%s) - fix_start_time))
+                ../helpers/memory_manager.sh log-fix "$todo_item" "$full_path" "$fix_applied" "$explanation" "success" "passed" "$fix_duration"
+                
                 # Clean up backup after successful fix
                 rm -f "${full_path}.backup"
                 return 0
@@ -228,14 +237,29 @@ EOF
                 
                 # Log the failed attempt
                 log_failed_fix "$todo_item" "$fix_applied" "$explanation" "Tests failed after applying fix"
+                
+                # Log reverted fix to memory
+                local fix_duration=$(($(date +%s) - fix_start_time))
+                ../helpers/memory_manager.sh log-fix "$todo_item" "$full_path" "$fix_applied" "$explanation" "reverted" "failed" "$fix_duration"
+                
                 return 1
             fi
         else
             warn "Claude could not generate a valid fix"
+            
+            # Log failed attempt to memory
+            local fix_duration=$(($(date +%s) - fix_start_time))
+            ../helpers/memory_manager.sh log-fix "$todo_item" "$full_path" "No fix generated" "Claude could not generate a valid fix" "failed" "not_attempted" "$fix_duration"
+            
             return 1
         fi
     else
         error "Failed to get response from Claude CLI"
+        
+        # Log failed attempt to memory
+        local fix_duration=$(($(date +%s) - fix_start_time))
+        ../helpers/memory_manager.sh log-fix "$todo_item" "$full_path" "Communication error" "Failed to get response from Claude CLI" "failed" "not_attempted" "$fix_duration"
+        
         return 1
     fi
     
