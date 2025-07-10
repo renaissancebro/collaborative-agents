@@ -186,18 +186,48 @@ EOF
             # Apply the fix
             echo "$modified_content" > "$full_path"
             
-            # Verify the file is still valid (basic syntax check)
-            if verify_file_syntax "$full_path"; then
-                success "✅ Fix applied: $fix_applied"
+            # Run comprehensive tests before and after
+            local test_id="claude_fix_$(date +%s)_$$"
+            
+            # Test original file first
+            info "🧪 Testing original file before applying fix..."
+            local original_test_passed=false
+            if ../helpers/test_runner.sh test-file "${full_path}.backup" "original_$test_id" > /dev/null 2>&1; then
+                original_test_passed=true
+                info "✅ Original file tests passed"
+            else
+                warn "⚠️  Original file has test failures (proceeding with fix)"
+            fi
+            
+            # Test modified file
+            info "🧪 Testing modified file after applying fix..."
+            if ../helpers/test_runner.sh test-file "$full_path" "modified_$test_id"; then
+                success "✅ Fix applied and all tests passed: $fix_applied"
                 info "Explanation: $explanation"
+                
+                # Additional regression test - compare test results
+                if [ "$original_test_passed" = true ]; then
+                    if run_regression_test "${full_path}.backup" "$full_path" "$test_id"; then
+                        success "🎉 Regression tests passed - no functionality broken"
+                    else
+                        warn "⚠️  Potential regression detected, but syntax is valid"
+                    fi
+                fi
                 
                 # Mark TODO as completed
                 mark_todo_completed "$todo_item" "$fix_applied" "$explanation"
+                
+                # Clean up backup after successful fix
+                rm -f "${full_path}.backup"
                 return 0
             else
-                # Restore backup if syntax check fails
+                # Revert changes if tests fail
+                warn "💥 Tests failed after applying fix, reverting changes..."
                 mv "${full_path}.backup" "$full_path"
-                error "❌ Fix caused syntax errors, reverted changes"
+                error "❌ Fix caused test failures, reverted to original version"
+                
+                # Log the failed attempt
+                log_failed_fix "$todo_item" "$fix_applied" "$explanation" "Tests failed after applying fix"
                 return 1
             fi
         else
@@ -238,6 +268,83 @@ verify_file_syntax() {
             return 0
             ;;
     esac
+}
+
+# Run regression test comparing before and after
+run_regression_test() {
+    local original_file="$1"
+    local modified_file="$2"
+    local test_id="$3"
+    
+    info "🔍 Running regression analysis..."
+    
+    # Compare test results from before and after
+    local original_results="../postbox/test_results/original_${test_id}.json"
+    local modified_results="../postbox/test_results/modified_${test_id}.json"
+    
+    if [ -f "$original_results" ] && [ -f "$modified_results" ]; then
+        # Compare number of passed tests
+        local original_passed=$(jq '[.tests[] | select(.status == "passed")] | length' "$original_results" 2>/dev/null || echo "0")
+        local modified_passed=$(jq '[.tests[] | select(.status == "passed")] | length' "$modified_results" 2>/dev/null || echo "0")
+        
+        # Compare number of failed tests
+        local original_failed=$(jq '[.tests[] | select(.status == "failed")] | length' "$original_results" 2>/dev/null || echo "0")
+        local modified_failed=$(jq '[.tests[] | select(.status == "failed")] | length' "$modified_results" 2>/dev/null || echo "0")
+        
+        info "Test comparison: Original($original_passed passed, $original_failed failed) vs Modified($modified_passed passed, $modified_failed failed)"
+        
+        # Regression if we have fewer passing tests or more failing tests
+        if [ "$modified_passed" -lt "$original_passed" ] || [ "$modified_failed" -gt "$original_failed" ]; then
+            warn "🔴 Regression detected: Test results degraded"
+            return 1
+        else
+            success "🟢 No regression: Test results maintained or improved"
+            return 0
+        fi
+    else
+        warn "⚠️  Could not compare test results (missing files)"
+        return 0  # Don't fail if we can't compare
+    fi
+}
+
+# Log failed fix attempts
+log_failed_fix() {
+    local todo_item="$1"
+    local fix_attempted="$2"
+    local explanation="$3"
+    local failure_reason="$4"
+    
+    local failed_fixes_file="$POSTBOX_DIR/failed_fixes.md"
+    
+    # Initialize file if it doesn't exist
+    if [ ! -f "$failed_fixes_file" ]; then
+        cat > "$failed_fixes_file" << 'EOF'
+# Failed Fix Attempts
+
+This file tracks fixes that were attempted but failed testing.
+
+EOF
+    fi
+    
+    # Add failed attempt
+    {
+        echo "## Failed Fix: $(date '+%Y-%m-%d %H:%M:%S')"
+        echo ""
+        echo "**Original TODO:** $todo_item"
+        echo ""
+        echo "**Fix Attempted:** $fix_attempted"
+        echo ""
+        echo "**Explanation:** $explanation"
+        echo ""
+        echo "**Failure Reason:** $failure_reason"
+        echo ""
+        echo "**Status:** Auto-reverted to original version"
+        echo ""
+        echo "---"
+        echo ""
+    } >> "$failed_fixes_file"
+    
+    warn "📝 Failed fix logged to failed_fixes.md"
 }
 
 # Mark TODO item as completed

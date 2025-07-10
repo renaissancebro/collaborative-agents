@@ -90,6 +90,14 @@ show_completed_status() {
         echo -e "${RED}❌ Completed file not found${NC}"
     fi
     
+    # Show failed fixes if any
+    if [ -f "$POSTBOX_DIR/failed_fixes.md" ]; then
+        local failed_count=$(grep -c "^## Failed Fix:" "$POSTBOX_DIR/failed_fixes.md" 2>/dev/null || echo "0")
+        if [ "$failed_count" -gt 0 ]; then
+            echo -e "Failed fixes (auto-reverted): ${RED}$failed_count${NC}"
+        fi
+    fi
+    
     echo ""
 }
 
@@ -137,6 +145,28 @@ show_system_info() {
     echo ""
 }
 
+show_test_status() {
+    echo -e "${BLUE}🧪 Test Status${NC}"
+    echo "──────────────"
+    
+    if [ -f "$POSTBOX_DIR/test_results/test_summary.json" ]; then
+        local total_tests=$(jq -r '.total_tests // 0' "$POSTBOX_DIR/test_results/test_summary.json" 2>/dev/null)
+        local passed_tests=$(jq -r '.passed_tests // 0' "$POSTBOX_DIR/test_results/test_summary.json" 2>/dev/null)
+        local failed_tests=$(jq -r '.failed_tests // 0' "$POSTBOX_DIR/test_results/test_summary.json" 2>/dev/null)
+        local last_updated=$(jq -r '.last_updated // "Never"' "$POSTBOX_DIR/test_results/test_summary.json" 2>/dev/null)
+        
+        echo -e "Total files tested: ${CYAN}$total_tests${NC}"
+        echo -e "Tests passed: ${GREEN}$passed_tests${NC}"
+        echo -e "Tests failed: ${RED}$failed_tests${NC}"
+        echo -e "Last test run: ${YELLOW}$(echo "$last_updated" | cut -d'T' -f1)${NC}"
+    else
+        echo -e "${YELLOW}No test results available${NC}"
+        echo -e "Run: ${CYAN}../helpers/test_runner.sh${NC}"
+    fi
+    
+    echo ""
+}
+
 show_controls() {
     echo -e "${BLUE}🎛️  Controls${NC}"
     echo "─────────────"
@@ -145,6 +175,9 @@ show_controls() {
     echo -e "${YELLOW}c${NC} - View Claude logs"
     echo -e "${YELLOW}t${NC} - View TODO file"
     echo -e "${YELLOW}f${NC} - View completed fixes"
+    echo -e "${YELLOW}x${NC} - View failed fixes"
+    echo -e "${YELLOW}T${NC} - Run tests"
+    echo -e "${YELLOW}R${NC} - View test report"
     echo -e "${YELLOW}s${NC} - Start agents"
     echo -e "${YELLOW}k${NC} - Kill agents"
     echo -e "${YELLOW}q${NC} - Quit monitor"
@@ -219,6 +252,7 @@ interactive_mode() {
         check_agent_status
         show_todo_status
         show_completed_status
+        show_test_status
         show_recent_activity
         show_system_info
         show_controls
@@ -242,6 +276,29 @@ interactive_mode() {
                 ;;
             f|F)
                 show_file "$POSTBOX_DIR/completed-todos.md" "Completed Fixes"
+                ;;
+            x|X)
+                show_file "$POSTBOX_DIR/failed_fixes.md" "Failed Fixes"
+                ;;
+            T)
+                echo "Running tests..."
+                cd "$POSTBOX_DIR/.." && ./helpers/test_runner.sh test-all
+                echo ""
+                echo -e "${YELLOW}Press any key to continue...${NC}"
+                read -n 1 -s
+                ;;
+            R)
+                if [ -f "$POSTBOX_DIR/test_results/test_report.html" ]; then
+                    echo "Opening test report in browser..."
+                    if command -v open &> /dev/null; then
+                        open "$POSTBOX_DIR/test_results/test_report.html"
+                    else
+                        echo "Test report available at: $POSTBOX_DIR/test_results/test_report.html"
+                    fi
+                else
+                    echo "No test report available. Run tests first with 'T'"
+                fi
+                sleep 2
                 ;;
             s|S)
                 start_agents
