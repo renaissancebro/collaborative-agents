@@ -6,7 +6,7 @@
 set -euo pipefail
 
 # Configuration
-CODEBASE_DIR="../codebase"
+CODEBASE_DIR="${CODEBASE_DIR:-../codebase}"
 POSTBOX_DIR="../postbox"
 TODO_FILE="$POSTBOX_DIR/todo.md"
 COMPLETED_FILE="$POSTBOX_DIR/completed-todos.md"
