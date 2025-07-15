@@ -40,7 +40,36 @@ cd watcher && ./claude_loop.sh
 cd helpers && ./monitor.sh
 ```
 
-## 🧪 **NEW: Auto-Testing & Revert Features**
+## 🎯 **NEW: Claude Code Hook Integration**
+
+### How It Works
+The collaborative agents now integrate seamlessly with Claude Code as hooks:
+
+1. **Automatic Triggering**: Hooks activate on `Edit`, `MultiEdit`, `Write`, and `Bash` commands
+2. **Smart Analysis**: Gemini analyzes your code changes using memory context
+3. **Auto-Fixing**: Claude applies fixes based on learned patterns
+4. **Background Operation**: Everything happens automatically while you code
+5. **Session Summaries**: Get results and insights after each session
+
+### Hook Events
+- **PostToolUse**: Triggers collaborative analysis after code modifications
+- **Stop**: Generates summary when Claude finishes responding
+
+### Memory-Enhanced Intelligence
+- **Gemini** receives context about previous successful fix patterns
+- **Claude** gets focused prompts based on file type success rates
+- **Both agents** learn from each session to improve over time
+
+### Files Created
+```
+claude-code-hook.sh      # Main hook integration script
+claude-settings.json     # Hook configuration template  
+merge-hooks.sh          # Safe merge with existing hooks
+setup-hook.sh           # Automated setup
+test-hook.sh            # Integration testing
+```
+
+## 🧪 **Auto-Testing & Revert Features**
 
 ### What happens when Claude applies a fix:
 1. **📸 Backup** - Original file backed up automatically
