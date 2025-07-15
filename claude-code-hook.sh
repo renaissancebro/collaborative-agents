@@ -113,8 +113,10 @@ start_collaborative_analysis() {
         # Run one-shot analysis instead of continuous loop
         (
             cd "$WATCHER_DIR"
+            # Set the correct codebase path for the hook context
+            export CODEBASE_DIR="$SCRIPT_DIR/codebase"
             # Modified version for hook - single scan
-            ./gemini_loop.sh scan-once 2>/dev/null &
+            timeout 30 ./gemini_loop.sh scan-once 2>/dev/null || true
         ) &
         local gemini_pid=$!
         
