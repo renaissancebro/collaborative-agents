@@ -173,7 +173,7 @@ EOF
         local todo_count=$(grep -c "^- \[ \]" "$POSTBOX_DIR/todo.md" 2>/dev/null || echo "0")
         echo "- **Issues Found:** $todo_count" >> "$summary_file"
         
-        if [ "$todo_count" -gt 0 ]; then
+        if [ "$todo_count" -gt 0 ] 2>/dev/null; then
             echo "- **Status:** Auto-fixing in progress" >> "$summary_file"
             echo "" >> "$summary_file"
             echo "## Issues Detected" >> "$summary_file"
