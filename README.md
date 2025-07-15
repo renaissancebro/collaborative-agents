@@ -109,13 +109,28 @@ New monitor commands:
 ## 📁 Complete File Structure:
 
 ```
+# Core Hook Integration 🆕
+claude-code-hook.sh        # Main hook integration script
+claude-settings.json       # Hook configuration template
+merge-hooks.sh            # Safe merge with existing hooks
+setup-hook.sh             # Automated hook setup
+test-hook.sh              # Integration testing
+
+# Agent Scripts
+watcher/
+├── gemini_loop.sh         # Gemini detection agent
+└── claude_loop.sh         # Claude fixing agent
+
+# Data & Results
 postbox/
 ├── failed_fixes.md        # Auto-reverted fixes
+├── hook.log              # 🆕 Hook execution log
+├── hook_summary.md       # 🆕 Hook session summary
 ├── test_results/          # Comprehensive test data
 │   ├── test_summary.json  # Overall test status
 │   ├── test_report.html   # Visual test report
 │   └── *.json            # Individual test results
-├── memory/                # 🧠 NEW: Session memory system
+├── memory/                # 🧠 Session memory system
 │   ├── session_log.md     # Complete fix history with reasoning
 │   ├── analytics.json     # Success rates, patterns, metrics
 │   ├── patterns.json      # Success/failure pattern analysis
@@ -124,12 +139,19 @@ postbox/
 │   └── archive/           # Historical session data
 └── *.log                 # Enhanced logging
 
+# Utilities
 helpers/
-├── memory_manager.sh      # 🧠 NEW: Session memory management
+├── memory_manager.sh      # 🧠 Session memory management
 ├── test_runner.sh         # Comprehensive testing
 ├── monitor.sh             # Enhanced monitoring dashboard
 ├── setup.sh               # Environment setup
 └── cleanup.sh             # System cleanup
+
+# Your Code
+codebase/                  # Your project files go here
+├── *.py                   # Python files
+├── *.js                   # JavaScript files
+└── *.ts                   # TypeScript files
 ```
 
 ## 🎯 **Memory Features in Detail**
