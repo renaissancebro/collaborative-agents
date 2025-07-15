@@ -1,27 +1,37 @@
 # Collaborative Agents System
 
+## 🚀 **Use Claude Code Normally - Agents Work Automatically!**
+
 A dual-agent workflow system with **comprehensive self-testing, auto-revert, and session memory** capabilities:
 - **Gemini Agent** detects code issues and creates TODOs
-- **Claude Agent** applies fixes with automatic testing and rollback
+- **Claude Agent** applies fixes with automatic testing and rollback  
 - **Smart Testing** runs before/after comparisons and reverts failed fixes
 - **Session Memory** tracks all fixes, reasoning, and breakage patterns
 - **Comprehensive Monitoring** with analytics and insights
 - **🆕 Claude Code Hook Integration** - Works seamlessly as a Claude Code hook
 
+### ✨ **Key Feature**: After setup, just use Claude Code normally - no new commands to learn!
+
 ## 🚀 Quick Start
 
-### Option 1: Claude Code Hook Integration (Recommended)
+### Option 1: Claude Code Hook Integration (Recommended) ⭐
 ```bash
-# Setup as Claude Code hook
+# One-time setup (takes 30 seconds)
 ./setup-hook.sh
 ./merge-hooks.sh
 
-# Test the integration
+# Test the integration (optional)
 ./test-hook.sh
 
-# Now use Claude Code normally - collaborative agents run automatically!
+# That's it! Now use Claude Code normally - collaborative agents work automatically!
 claude
 ```
+
+**✨ After setup, collaborative agents run automatically in the background every time you:**
+- Edit files with Claude Code
+- Write new files  
+- Run bash commands
+- **No manual intervention needed!**
 
 ### Option 2: Standalone System
 ```bash
@@ -40,27 +50,45 @@ cd watcher && ./claude_loop.sh
 cd helpers && ./monitor.sh
 ```
 
-## 🎯 **NEW: Claude Code Hook Integration**
+## 🎯 **Claude Code Hook Integration - Works Automatically!**
 
-### How It Works
-The collaborative agents now integrate seamlessly with Claude Code as hooks:
+### 🔄 How It Works Behind the Scenes
+When you use Claude Code normally, the collaborative agents automatically:
 
-1. **Automatic Triggering**: Hooks activate on `Edit`, `MultiEdit`, `Write`, and `Bash` commands
-2. **Smart Analysis**: Gemini analyzes your code changes using memory context
-3. **Auto-Fixing**: Claude applies fixes based on learned patterns
-4. **Background Operation**: Everything happens automatically while you code
-5. **Session Summaries**: Get results and insights after each session
+```
+You edit a file with Claude Code
+          ↓
+🎯 Hook triggers instantly
+          ↓
+🔍 Gemini analyzes your changes (with memory context)
+          ↓
+📋 Creates TODO items for issues found
+          ↓
+🤖 Claude applies fixes automatically
+          ↓
+🧪 Tests run to verify fixes work
+          ↓
+📊 Results logged to memory system
+          ↓
+✅ Summary generated for you
+```
 
-### Hook Events
-- **PostToolUse**: Triggers collaborative analysis after code modifications
-- **Stop**: Generates summary when Claude finishes responding
+### 🎮 Zero-Effort Usage
+```bash
+# After one-time setup, just use Claude Code normally:
+claude
 
-### Memory-Enhanced Intelligence
-- **Gemini** receives context about previous successful fix patterns
-- **Claude** gets focused prompts based on file type success rates
-- **Both agents** learn from each session to improve over time
+# Edit any file - collaborative agents work automatically!
+# No commands to remember, no manual steps
+```
 
-### Files Created
+### 🧠 Intelligence Features
+- **Memory-Enhanced**: Gemini gets context about previous successful fixes
+- **Success-Driven**: Claude focuses on fix patterns that work
+- **Self-Learning**: Both agents improve over time from session data
+- **Auto-Revert**: Failed fixes are automatically rolled back
+
+### 📁 Hook Files Created
 ```
 claude-code-hook.sh      # Main hook integration script
 claude-settings.json     # Hook configuration template  
@@ -68,6 +96,12 @@ merge-hooks.sh          # Safe merge with existing hooks
 setup-hook.sh           # Automated setup
 test-hook.sh            # Integration testing
 ```
+
+### 🚨 **Important**: macOS Compatibility Fixed
+- ✅ Fixed `realpath` issues for macOS
+- ✅ Enhanced file finding logic  
+- ✅ Added proper error handling
+- ✅ Cross-platform compatibility
 
 ## 🧪 **Auto-Testing & Revert Features**
 
@@ -193,47 +227,54 @@ secure configuration while maintaining backward compatibility.
 - Success/failure trend analysis
 - Continuous improvement suggestions
 
-## 🎮 **Hook Usage Example**
+## 🎮 **Real-World Usage Example**
 
+### 1. One-Time Setup (30 seconds)
 ```bash
-# 1. Setup (one-time)
 ./setup-hook.sh
 ./merge-hooks.sh
+```
 
-# 2. Use Claude Code normally
+### 2. Normal Claude Code Usage
+```bash
 claude
 ```
 
-When you edit files, the collaborative agents automatically:
-```
-🔧 Edit user_service.py
-   ↓
-🔍 Gemini analyzes changes
-   ↓
-📋 Creates TODO items
-   ↓
-🤖 Claude applies fixes
-   ↓
-🧪 Tests run automatically
-   ↓
-📊 Summary generated
+### 3. Automatic Background Operation
+```bash
+# You edit a file like this:
+> Edit user_service.py and add error handling
+
+# Behind the scenes (automatically):
+🎯 Hook triggers
+🔍 Gemini: "Found security issue in user_service.py:42"
+📋 Creates TODO: "Fix hard-coded password"
+🤖 Claude: Applies fix with environment variable
+🧪 Tests pass ✅
+📊 Logs to memory system
+✅ Summary: "1 security issue fixed successfully"
 ```
 
-### Real-time Monitoring
+### 4. Monitor Results (Optional)
 ```bash
-# Watch hook activity
+# Watch real-time activity
 tail -f postbox/hook.log
 
-# View latest results
+# View session results
 cat postbox/hook_summary.md
 cat postbox/todo.md
-
-# Check session memory
 cat postbox/memory/session_log.md
 ```
 
-### Requirements
+## 🔧 **Setup Requirements**
 - **Claude CLI**: Already installed ✅
 - **Gemini CLI**: `npm install -g @google/generative-ai-cli`
 - **jq**: For JSON processing (`brew install jq`)
 - **API Keys**: Configure Gemini API access
+
+## 🎯 **Key Benefits**
+- **Zero Learning Curve**: Use Claude Code exactly as before
+- **Automatic Quality**: Code issues fixed in background
+- **Memory System**: Learns from each session
+- **Safe Operation**: Auto-reverts failed fixes
+- **No Interruption**: Works seamlessly while you code
