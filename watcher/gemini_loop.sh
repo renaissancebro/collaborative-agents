@@ -93,7 +93,8 @@ scan_codebase() {
     info "🔍 Scanning codebase for issues..."
     
     # Find all Python and JavaScript/Node.js files, prioritizing recently modified ones
-    local files=$(find "$CODEBASE_DIR" -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) -printf '%T@ %p\n' | sort -nr | head -10 | cut -d' ' -f2-)
+    # Use stat for macOS compatibility instead of -printf
+    local files=$(find "$CODEBASE_DIR" -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) -exec stat -f '%m %N' {} \; 2>/dev/null | sort -nr | head -10 | cut -d' ' -f2- || find "$CODEBASE_DIR" -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) | head -10)
     
     if [ -z "$files" ]; then
         warn "No code files found in $CODEBASE_DIR"
