@@ -1,0 +1,65 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/joshuafreeman/Desktop/agent_projects/collaborative-agents/claude-code-hook.sh PostToolUse",
+            "description": "Trigger collaborative agents after file edits"
+          }
+        ]
+      },
+      {
+        "matcher": "MultiEdit", 
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/joshuafreeman/Desktop/agent_projects/collaborative-agents/claude-code-hook.sh PostToolUse",
+            "description": "Trigger collaborative agents after multi-file edits"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command", 
+            "command": "bash /Users/joshuafreeman/Desktop/agent_projects/collaborative-agents/claude-code-hook.sh PostToolUse",
+            "description": "Trigger collaborative agents after writing files"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/joshuafreeman/Desktop/agent_projects/collaborative-agents/claude-code-hook.sh PostToolUse",
+            "description": "Trigger collaborative agents after bash commands"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/joshuafreeman/Desktop/agent_projects/collaborative-agents/claude-code-hook.sh Stop",
+            "description": "Generate collaborative agents summary when Claude stops"
+          }
+        ]
+      }
+    ]
+  },
+  "collaborative_agents": {
+    "enabled": true,
+    "auto_fix": true,
+    "gemini_model": "gemini-1.5-flash",
+    "scan_file_limit": 10,
+    "memory_enabled": true
+  }
+}
