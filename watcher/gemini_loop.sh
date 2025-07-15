@@ -148,7 +148,7 @@ EOF
 
     # Process each file
     for file in $files; do
-        local relative_path=$(realpath --relative-to="$CODEBASE_DIR" "$file")
+        local relative_path=$(basename "$file")
         info "   Analyzing: $relative_path"
         
         # Create analysis for this file
