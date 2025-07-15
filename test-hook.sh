@@ -84,7 +84,7 @@ fi
 
 if [ -f "$SCRIPT_DIR/postbox/todo.md" ]; then
     echo "✅ TODO file created"
-    local todo_count=$(grep -c "^- \[ \]" "$SCRIPT_DIR/postbox/todo.md" 2>/dev/null || echo 0)
+    todo_count=$(grep -c "^- \[ \]" "$SCRIPT_DIR/postbox/todo.md" 2>/dev/null || echo 0)
     echo "📋 Found $todo_count issues"
 else
     echo "❌ TODO file not created"
