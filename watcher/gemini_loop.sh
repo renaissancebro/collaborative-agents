@@ -92,8 +92,8 @@ cleanup() {
 scan_codebase() {
     info "🔍 Scanning codebase for issues..."
     
-    # Find all Python and JavaScript/Node.js files
-    local files=$(find "$CODEBASE_DIR" -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) | head -20)
+    # Find all Python and JavaScript/Node.js files, prioritizing recently modified ones
+    local files=$(find "$CODEBASE_DIR" -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) -printf '%T@ %p\n' | sort -nr | head -10 | cut -d' ' -f2-)
     
     if [ -z "$files" ]; then
         warn "No code files found in $CODEBASE_DIR"
@@ -103,18 +103,37 @@ scan_codebase() {
     local temp_analysis="/tmp/gemini_analysis.md"
     local issues_found=0
     
-    # Create a comprehensive analysis prompt
-    cat > /tmp/gemini_prompt.txt << 'EOF'
-You are a senior code reviewer and static analysis expert. Analyze the provided code files for:
+    # Load memory context for better analysis
+    local memory_context=""
+    if [ -f "../postbox/memory/analytics.json" ]; then
+        local success_patterns=$(jq -r '.fix_categories | to_entries | sort_by(.value) | reverse | .[0:3] | map("- Previous successful fixes: " + .key) | join("\n")' "../postbox/memory/analytics.json")
+        local problematic_files=$(jq -r '.files_modified[-5:] | map("- Recently modified: " + .) | join("\n")' "../postbox/memory/analytics.json")
+        memory_context="
+CONTEXT FROM PREVIOUS SESSIONS:
+$success_patterns
+$problematic_files
+"
+    fi
+
+    # Create a comprehensive analysis prompt with memory context
+    cat > /tmp/gemini_prompt.txt << EOF
+You are a senior code reviewer and static analysis expert working with Claude Code fixing agent.
+
+$memory_context
+
+Analyze the provided code files for:
 
 1. Code smells and bad practices
-2. Performance issues
+2. Performance issues  
 3. Security vulnerabilities
 4. Style inconsistencies
 5. Logic errors or potential bugs
 6. Maintainability issues
 7. Missing error handling
 8. Inefficient algorithms
+
+FOCUS ON: Issues that are likely to be successfully fixable by Claude based on previous patterns.
+AVOID: Complex architectural changes that would require extensive refactoring.
 
 For each issue found, provide a TODO item in this exact format:
 - [ ] Fix [issue_type] in [filename] at line [line_number]: [specific_description]
@@ -212,19 +231,34 @@ monitor_changes() {
 
 # Main execution
 main() {
-    info "🚀 Starting Gemini Code Analysis Agent"
-    
-    # Pre-flight checks
-    check_gemini_cli
-    check_directories
-    create_lock
-    
-    # Initial scan
-    scan_codebase
-    
-    # Start monitoring loop
-    info "📊 Starting monitoring loop (scanning every $SCAN_INTERVAL seconds)"
-    monitor_changes
+    case "${1:-continuous}" in
+        "scan-once")
+            info "🔍 Running single code analysis scan"
+            check_gemini_cli
+            check_directories
+            scan_codebase
+            ;;
+        "continuous"|"")
+            info "🚀 Starting Gemini Code Analysis Agent"
+            
+            # Pre-flight checks
+            check_gemini_cli
+            check_directories
+            create_lock
+            
+            # Initial scan
+            scan_codebase
+            
+            # Start monitoring loop
+            info "📊 Starting monitoring loop (scanning every $SCAN_INTERVAL seconds)"
+            monitor_changes
+            ;;
+        *)
+            error "Unknown mode: $1"
+            echo "Usage: $0 [continuous|scan-once]"
+            exit 1
+            ;;
+    esac
 }
 
 # Handle script termination

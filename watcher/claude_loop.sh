@@ -141,50 +141,66 @@ apply_fix() {
     
     local fix_start_time=$(date +%s)
     
+    # Load memory context for better fixes
+    local memory_context=""
+    if [ -f "../postbox/memory/analytics.json" ] && [ -f "../postbox/memory/patterns.json" ]; then
+        local successful_fixes=$(jq -r '.success_patterns[-3:] | map("✅ " + .category + ": " + .reasoning_snippet) | join("\n")' "../postbox/memory/patterns.json" 2>/dev/null || echo "")
+        local failed_fixes=$(jq -r '.failure_patterns[-2:] | map("❌ " + .category + ": " + .reasoning_snippet) | join("\n")' "../postbox/memory/patterns.json" 2>/dev/null || echo "")
+        local file_ext="${filename##*.}"
+        local success_rate=$(jq -r --arg ext "$file_ext" '.success_patterns + .failure_patterns | group_by(.file_type)[] | select(.[0].file_type == $ext) | [.[] | select(.status == "success")] | length' "../postbox/memory/patterns.json" 2>/dev/null || echo "unknown")
+        
+        memory_context="
+MEMORY CONTEXT:
+Recent successful fixes:
+$successful_fixes
+
+Recent failed attempts:
+$failed_fixes
+
+File type (.$file_ext) success rate: $success_rate fixes
+"
+    fi
+
     # Create a detailed prompt for Claude
     local temp_prompt="/tmp/claude_fix_prompt.txt"
     cat > "$temp_prompt" << EOF
-You are a senior software engineer tasked with fixing code issues. 
+You are Claude Code, a focused code fixing agent. Work efficiently and avoid over-engineering.
 
-TODO Item: $todo_item
+$memory_context
 
-File: $filename
-Current code context around line $line_number:
+TODO ITEM: $todo_item
+FILE: $filename (line $line_number)
 
+FOCUSED CONTEXT (±5 lines):
 \`\`\`
 $(sed -n "$((line_number-5)),$((line_number+5))p" "$full_path" | cat -n)
 \`\`\`
 
-Full file content:
-\`\`\`
-$(cat "$full_path")
-\`\`\`
+INSTRUCTIONS:
+1. Apply the minimal fix needed - don't over-engineer
+2. Focus on the specific issue mentioned in the TODO
+3. Use existing code patterns and style
+4. Ensure the fix is testable and won't break functionality
 
-Please:
-1. Analyze the specific issue mentioned in the TODO
-2. Apply the minimal fix needed
-3. Ensure the fix doesn't break existing functionality
-4. Maintain the original code style and patterns
+Based on memory: Focus on approaches that have worked for similar issues.
 
-Return your response as a JSON object with:
-{
-  "success": true/false,
-  "fix_applied": "description of what was fixed",
-  "modified_content": "the complete fixed file content",
-  "explanation": "brief explanation of the changes made"
-}
+Read the full file content and apply the fix:
 EOF
+    echo "\`\`\`" >> "$temp_prompt"
+    cat "$full_path" >> "$temp_prompt"
+    echo "\`\`\`" >> "$temp_prompt"
+    echo "" >> "$temp_prompt"
+    echo "RESPOND ONLY WITH the complete fixed file content. No JSON, no explanations - just the corrected code." >> "$temp_prompt"
     
     # Run Claude to get the fix
-    local claude_response="/tmp/claude_response.json"
-    if claude --output-format json --no-interaction < "$temp_prompt" > "$claude_response" 2>/dev/null; then
-        # Parse JSON response
-        local success=$(jq -r '.success // false' "$claude_response" 2>/dev/null)
-        local fix_applied=$(jq -r '.fix_applied // "No fix description"' "$claude_response" 2>/dev/null)
-        local modified_content=$(jq -r '.modified_content // ""' "$claude_response" 2>/dev/null)
-        local explanation=$(jq -r '.explanation // "No explanation provided"' "$claude_response" 2>/dev/null)
+    local claude_response="/tmp/claude_response.txt"
+    if claude --no-interaction < "$temp_prompt" > "$claude_response" 2>/dev/null; then
+        # Claude now returns the fixed file content directly
+        local modified_content=$(cat "$claude_response")
+        local fix_applied="Applied fix for: $(echo "$todo_item" | cut -d':' -f2-)"
+        local explanation="Automated fix applied by Claude Code"
         
-        if [ "$success" = "true" ] && [ -n "$modified_content" ]; then
+        if [ -n "$modified_content" ] && [ "$modified_content" != "$(cat "$full_path")" ]; then
             # Backup original file
             cp "$full_path" "${full_path}.backup"
             
@@ -449,19 +465,34 @@ monitor_todos() {
 
 # Main execution
 main() {
-    info "🚀 Starting Claude Code Fix Agent"
-    
-    # Pre-flight checks
-    check_claude_cli
-    check_directories
-    create_lock
-    
-    # Initial processing
-    process_todos
-    
-    # Start monitoring loop
-    info "📊 Starting monitoring loop (checking every $SCAN_INTERVAL seconds)"
-    monitor_todos
+    case "${1:-continuous}" in
+        "fix-once")
+            info "🔧 Running single fix attempt"
+            check_claude_cli
+            check_directories
+            process_todos
+            ;;
+        "continuous"|"")
+            info "🚀 Starting Claude Code Fix Agent"
+            
+            # Pre-flight checks
+            check_claude_cli
+            check_directories
+            create_lock
+            
+            # Initial processing
+            process_todos
+            
+            # Start monitoring loop
+            info "📊 Starting monitoring loop (checking every $SCAN_INTERVAL seconds)"
+            monitor_todos
+            ;;
+        *)
+            error "Unknown mode: $1"
+            echo "Usage: $0 [continuous|fix-once]"
+            exit 1
+            ;;
+    esac
 }
 
 # Handle script termination
