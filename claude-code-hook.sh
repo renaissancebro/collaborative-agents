@@ -76,7 +76,7 @@ should_trigger_analysis() {
             ;;
         "Bash")
             # Check if bash command might have modified code files
-            if [[ "$CLAUDE_COMMAND" =~ (git|npm|pip|yarn|make) ]]; then
+            if [[ "${CLAUDE_COMMAND:-}" =~ (git|npm|pip|yarn|make) ]]; then
                 return 0
             fi
             ;;
