@@ -115,7 +115,7 @@ start_collaborative_analysis() {
             cd "$WATCHER_DIR"
             # Modified version for hook - single scan
             ./gemini_loop.sh scan-once 2>/dev/null &
-        )
+        ) &
         local gemini_pid=$!
         
         # Wait briefly for analysis to complete
