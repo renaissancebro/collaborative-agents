@@ -10,14 +10,26 @@ A dual-agent workflow system with **comprehensive self-testing, auto-revert, and
 
 ## 🚀 Quick Start
 
-### Setup
+### Option 1: Claude Code Hook Integration (Recommended)
 ```bash
-cd helpers
-./setup.sh
+# Setup as Claude Code hook
+./setup-hook.sh
+./merge-hooks.sh
+
+# Test the integration
+./test-hook.sh
+
+# Now use Claude Code normally - collaborative agents run automatically!
+claude
 ```
 
-### Run the System
+### Option 2: Standalone System
 ```bash
+# Traditional setup
+cd helpers
+./setup.sh
+
+# Run manually
 # Terminal 1 - Gemini Agent
 cd watcher && ./gemini_loop.sh
 
