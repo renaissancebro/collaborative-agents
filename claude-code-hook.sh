@@ -125,8 +125,8 @@ start_collaborative_analysis() {
         
         # Check if TODO items were generated
         if [ -f "$POSTBOX_DIR/todo.md" ]; then
-            local todo_count=$(grep -c "^- \[ \]" "$POSTBOX_DIR/todo.md" 2>/dev/null || echo 0)
-            if [ "$todo_count" -gt 0 ]; then
+            local todo_count=$(grep -c "^- \[ \]" "$POSTBOX_DIR/todo.md" 2>/dev/null || echo "0")
+            if [ "$todo_count" -gt 0 ] 2>/dev/null; then
                 success "📋 Found $todo_count issues to fix"
                 
                 # Optionally start Claude fixing loop
