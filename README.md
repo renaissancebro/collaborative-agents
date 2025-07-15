@@ -192,3 +192,48 @@ secure configuration while maintaining backward compatibility.
 - Pattern analysis and learning
 - Success/failure trend analysis
 - Continuous improvement suggestions
+
+## 🎮 **Hook Usage Example**
+
+```bash
+# 1. Setup (one-time)
+./setup-hook.sh
+./merge-hooks.sh
+
+# 2. Use Claude Code normally
+claude
+```
+
+When you edit files, the collaborative agents automatically:
+```
+🔧 Edit user_service.py
+   ↓
+🔍 Gemini analyzes changes
+   ↓
+📋 Creates TODO items
+   ↓
+🤖 Claude applies fixes
+   ↓
+🧪 Tests run automatically
+   ↓
+📊 Summary generated
+```
+
+### Real-time Monitoring
+```bash
+# Watch hook activity
+tail -f postbox/hook.log
+
+# View latest results
+cat postbox/hook_summary.md
+cat postbox/todo.md
+
+# Check session memory
+cat postbox/memory/session_log.md
+```
+
+### Requirements
+- **Claude CLI**: Already installed ✅
+- **Gemini CLI**: `npm install -g @google/generative-ai-cli`
+- **jq**: For JSON processing (`brew install jq`)
+- **API Keys**: Configure Gemini API access
