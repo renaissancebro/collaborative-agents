@@ -6,6 +6,7 @@ A dual-agent workflow system with **comprehensive self-testing, auto-revert, and
 - **Smart Testing** runs before/after comparisons and reverts failed fixes
 - **Session Memory** tracks all fixes, reasoning, and breakage patterns
 - **Comprehensive Monitoring** with analytics and insights
+- **🆕 Claude Code Hook Integration** - Works seamlessly as a Claude Code hook
 
 ## 🚀 Quick Start
 
