@@ -170,7 +170,7 @@ generate_summary() {
 EOF
     
     if [ -f "$POSTBOX_DIR/todo.md" ]; then
-        local todo_count=$(grep -c "^- \[ \]" "$POSTBOX_DIR/todo.md" 2>/dev/null || echo 0)
+        local todo_count=$(grep -c "^- \[ \]" "$POSTBOX_DIR/todo.md" 2>/dev/null || echo "0")
         echo "- **Issues Found:** $todo_count" >> "$summary_file"
         
         if [ "$todo_count" -gt 0 ]; then
